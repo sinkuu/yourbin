@@ -27,16 +27,30 @@ const IndentConfig = (props: any) => {
     dispatch(
       editorUpdate(id, editor => ({
         ...editor,
-        indent: { mode, size: 0 }
+        indent: { ...editor.indent, mode }
       }))
     );
   };
+
+  const setSize = (size: number) => {
+    dispatch(
+      editorUpdate(id, editor => ({
+        ...editor,
+        indent: { ...editor.indent, size }
+      }))
+    );
+  };
+
+  const displayMode =
+    indent.mode.charAt(0).toUpperCase() + indent.mode.slice(1);
 
   return (
     <div className="dropdown is-hoverable">
       <div className="dropdown-trigger">
         <button className="button">
-          <span>Spaces: 2</span>
+          <span>
+            {displayMode}: {indent.size}
+          </span>
           <span className="icon is-small">
             <FontAwesomeIcon icon={faAngleDown} />
           </span>
@@ -62,12 +76,12 @@ const IndentConfig = (props: any) => {
           <hr className="dropdown-separator" />
           <div className="dropdown-item">
             <div className="control">
-              Indent unit:
-              <input type="number" value="4" />
-            </div>
-            <div className="control">
-              Tab size:
-              <input type="number" value="4" />
+              Indent size:
+              <input
+                type="number"
+                value={indent.size}
+                onChange={e => setSize(parseInt(e.target.value, 10))}
+              />
             </div>
           </div>
         </div>

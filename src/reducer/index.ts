@@ -33,7 +33,9 @@ export default combineReducers({
         }
 
         case Actions.EditorDiscardAll: {
-          Object.assign(draft, initialState.editors);
+          draft.states = {};
+          draft.states[draft.next_id.toString()] = initialState.editors.states[0];
+          draft.next_id++;
           break;
         }
 

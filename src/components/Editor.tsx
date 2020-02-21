@@ -127,17 +127,15 @@ import { connect } from "react-redux";
 
 interface EditorState {
   codemirror: CodeMirror.EditorFromTextArea | null;
-  changesHandler: any;
 }
 
 const Editor = (props: any) => {
   let [state, setState] = useState<EditorState>({
-    codemirror: null,
-    changesHandler: null
+    codemirror: null
   });
   const textarea = useRef<HTMLTextAreaElement>(null);
 
-  const { id, dispatch } = props;
+  const { id, dispatch, editor } = props;
 
   useEffect(() => {
     const codemirror = CodeMirror.fromTextArea(textarea.current!, {
@@ -154,27 +152,16 @@ const Editor = (props: any) => {
       );
     };
 
+    codemirror.setValue(editor.content);
+
     codemirror.on("changes", changesHandler);
 
-    setState({ codemirror, changesHandler });
+    setState({ codemirror });
 
     return () => {
       codemirror.toTextArea();
     };
   }, [id, dispatch]);
-
-  const { editor } = props;
-
-  useEffect(() => {
-    const { codemirror, changesHandler } = state;
-    if (codemirror) {
-      if (editor.content === "") {
-        codemirror.off("changes", changesHandler);
-        codemirror.setValue(editor.content);
-        codemirror.on("changes", changesHandler);
-      }
-    }
-  }, [state, editor.content]);
 
   useEffect(() => {
     const { codemirror } = state;
@@ -182,6 +169,25 @@ const Editor = (props: any) => {
       codemirror.setOption("mode", editor.type);
     }
   }, [state, editor.type]);
+
+  const { indent } = editor;
+
+  useEffect(() => {
+    const { codemirror } = state;
+    if (codemirror) {
+      codemirror.setOption("indentUnit", indent.size);
+      codemirror.setOption("tabSize", indent.size);
+      if (indent.mode === "space") {
+        codemirror.setOption("extraKeys", {
+          Tab: cm => {
+            cm.replaceSelection(" ".repeat(indent.size));
+          }
+        });
+      } else {
+        codemirror.setOption("extraKeys", {});
+      }
+    }
+  }, [state, indent]);
 
   return <textarea ref={textarea}></textarea>;
 };

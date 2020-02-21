@@ -37,7 +37,7 @@ const File = (props: FileProps) => {
     });
   }, []);
 
-  const [state, setState] = useState({ typeSelect: TYPE_AUTO });
+  const [state, setState] = useState({ typeSelect: editor.type === "" ? TYPE_AUTO : editor.type });
   const { typeSelect } = state;
 
   const currentType =
@@ -90,6 +90,7 @@ const File = (props: FileProps) => {
                   onChange={e => {
                     setState({ typeSelect: e.target.value });
                   }}
+                  value={state.typeSelect}
                 >
                   <option value={TYPE_AUTO}>
                     {"Auto" + (autoMode ? ` (${autoMode.name})` : "")}
@@ -100,7 +101,7 @@ const File = (props: FileProps) => {
             </div>
           </div>
           <div className="column">
-            <IndentConfig indent={editor.indent} id={id}/>
+            <IndentConfig indent={editor.indent} id={id} />
           </div>
           <div className="column">
             <button
