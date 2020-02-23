@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import "./App.sass";
 // import "bulma";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -6,13 +6,14 @@ import {
   faSearch,
   faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
-import { HashRouter, Route, NavLink, Switch } from "react-router-dom";
+import { HashRouter, Route, NavLink, Switch, useHistory } from "react-router-dom";
 import New from "./components/page/New";
 import { connect } from "react-redux";
 import { State, EditorState } from "./state";
 import Favorite from "./components/page/Favorite";
 import UnloadPrompt from "./components/UnloadPrompt";
 import View from "./components/page/View";
+import Yours from "./components/page/Yours";
 
 function RouteLink(props: { to: string; children: string }) {
   return (
@@ -28,6 +29,17 @@ function RouteLink(props: { to: string; children: string }) {
 }
 
 function NavBar(props: { modified: boolean }) {
+  const history = useHistory();
+
+  const onSearch = useCallback(e => {
+    const value: string = e.target.value;
+    const cid = value.replace(/^\/ipfs\/|\/$/g, '');
+
+    if (cid.match(/^\w+/)) {
+      history.push("/view/ipfs/" + cid);
+    }
+  }, [history]);
+
   return (
     <nav
       className="navbar has-background-white-ter"
@@ -54,7 +66,7 @@ function NavBar(props: { modified: boolean }) {
 
           <RouteLink to="/yours">Your pastes</RouteLink>
 
-          <RouteLink to="/favorite">Favorite</RouteLink>
+          {/* <RouteLink to="/favorite">Favorite</RouteLink> */}
         </div>
 
         <div className="navbar-end">
@@ -78,7 +90,12 @@ function NavBar(props: { modified: boolean }) {
           )}
           <div className="navbar-item">
             <p className="control has-icons-left">
-              <input className="input" type="text" placeholder="IPFS Path" />
+              <input
+                className="input"
+                type="text"
+                placeholder="IPFS Path"
+                onChange={onSearch}
+              />
               <span className="icon is-left">
                 <FontAwesomeIcon icon={faSearch} />
               </span>
@@ -101,7 +118,9 @@ function App(props: { modified: boolean }) {
             <Route path="/" exact>
               <New />
             </Route>
-            <Route path="/yours">yours</Route>
+            <Route path="/yours">
+              <Yours />
+            </Route>
             <Route path="/favorite">
               <Favorite />
             </Route>

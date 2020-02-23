@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FilesInfo } from "../../ipfs";
 import { useHistory } from "react-router-dom";
+import CodeMirror from "codemirror";
 
 declare global {
   interface Window {
@@ -84,12 +85,33 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
   const history = useHistory();
 
   const publish = async () => {
-    const editors = Object.entries(props.editors.states);
+    let editors = Object.entries(props.editors.states);
     props.dispatch(editorDiscardAll());
     editors.sort(([k1, _v1], [k2, _v2]) => parseInt(k1, 10) - parseInt(k2, 10));
 
+    editors = editors.map(([id, e]: [string, EditorState]) => {
+      let filename;
+      let ext;
+      if (e.filename) {
+        filename = e.filename;
+        // @ts-ignore
+      } else if ((ext = CodeMirror.findModeByMIME(e.type)?.ext[0])) {
+        filename = id + "." + ext;
+      } else {
+        filename = id;
+      }
+
+      return [
+        id,
+        {
+          ...e,
+          filename
+        }
+      ];
+    });
+
     const files: any[] = editors.map(([id, e]: [string, EditorState]) => ({
-      path: "/" + (e.filename ? e.filename : id),
+      path: "/" + e.filename,
       content: e.content,
       mtime: { secs: new Date().getTime() }
     }));
@@ -98,7 +120,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
       (o, [id, editor]) => ({
         ...o,
         [id]: {
-          filename: editor.filename || id,
+          filename: editor.filename,
           type: editor.type
         }
       }),
@@ -122,7 +144,18 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
 
       // history.push()
       console.log(result);
-      history.push("/view/ipfs/" + result.slice(-1)[0].hash);
+
+      const ipfsPath = "/ipfs/" + result.slice(-1)[0].hash;
+
+      await ipfs.files.mkdir("/yours", {
+        parents: true,
+        hashAlg: "blake2b-256"
+      });
+      await ipfs.files.cp(ipfsPath, "/yours/" + new Date().getTime(), {
+        hashAlg: "blake2b-256"
+      });
+
+      history.push("/view" + ipfsPath);
     }
   };
 
