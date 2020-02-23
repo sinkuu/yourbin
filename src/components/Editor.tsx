@@ -2,7 +2,6 @@ import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 // import "./index.css";
-import { editorUpdate } from "../action";
 import "codemirror/mode/apl/apl";
 import "codemirror/mode/asciiarmor/asciiarmor";
 import "codemirror/mode/asn.1/asn.1";
@@ -123,7 +122,6 @@ import "codemirror/mode/yacas/yacas";
 import "codemirror/mode/yaml/yaml";
 import "codemirror/mode/yaml-frontmatter/yaml-frontmatter";
 import "codemirror/mode/z80/z80";
-import { connect } from "react-redux";
 
 interface EditorState {
   codemirror: CodeMirror.EditorFromTextArea | null;
@@ -135,17 +133,11 @@ const Editor = (props: any) => {
   });
   const textarea = useRef<HTMLTextAreaElement>(null);
 
-  const { id, dispatch, editor } = props;
+  const { onChange, editor } = props;
 
   const changesHandler = useCallback((inst: any) => {
-    dispatch(
-      editorUpdate(id, editor => ({
-        ...editor,
-        modified: true,
-        content: inst.getValue()
-      }))
-    );
-  }, [dispatch, id]);
+    onChange(inst.getValue());
+  }, [onChange]);
 
   useEffect(() => {
     const codemirror = CodeMirror.fromTextArea(textarea.current!, {
@@ -159,25 +151,25 @@ const Editor = (props: any) => {
     return () => {
       codemirror.toTextArea();
     };
-  }, [id, dispatch, changesHandler]);
+  }, [changesHandler]);
+
+  const { type, content, indent } = editor;
 
   useEffect(() => {
     const { codemirror } = state;
     if (codemirror && codemirror.getValue() === "") {
       codemirror.off("changes", changesHandler);
-      codemirror.setValue(editor.content);
+      codemirror.setValue(content);
       codemirror.on("changes", changesHandler);
     }
-  }, [state, editor.content, changesHandler]);
+  }, [state, content, changesHandler]);
 
   useEffect(() => {
     const { codemirror } = state;
     if (codemirror) {
-      codemirror.setOption("mode", editor.type);
+      codemirror.setOption("mode", type);
     }
-  }, [state, editor.type]);
-
-  const { indent } = editor;
+  }, [state, type]);
 
   useEffect(() => {
     const { codemirror } = state;
@@ -199,4 +191,4 @@ const Editor = (props: any) => {
   return <textarea ref={textarea}></textarea>;
 };
 
-export default connect()(Editor);
+export default Editor;

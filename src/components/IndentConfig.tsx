@@ -23,6 +23,8 @@ const ModeButton = (props: {
 const IndentConfig = (props: any) => {
   const { id, indent, dispatch } = props;
 
+  console.log(props);
+
   const setMode = (mode: "space" | "tab") => {
     dispatch(
       editorUpdate(id, editor => ({

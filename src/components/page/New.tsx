@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { connect } from "react-redux";
 import File from "../File";
 import { State, Editors, EditorState } from "../../state";
-import { editorAdd, editorDiscardAll } from "../../action";
+import { editorAdd, editorDiscardAll, editorUpdate } from "../../action";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FilesInfo } from "../../ipfs";
@@ -18,12 +18,59 @@ declare global {
 }
 
 const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
+  const { dispatch } = props;
+
+  const onChange = useCallback(
+    (id: string, content: string) =>
+      dispatch(
+        editorUpdate(id, editor => ({
+          ...editor,
+          modified: true,
+          content
+        }))
+      ),
+    [dispatch]
+  );
+
+  const onTypeChange = useCallback(
+    (id: string, type: string) =>
+      dispatch(
+        editorUpdate(id, editor => {
+          const modified = editor.modified || type !== "";
+          return {
+            ...editor,
+            type,
+            modified
+          };
+        })
+      ),
+    [dispatch]
+  );
+
+  const onFileNameChange = useCallback(
+    (id: string, filename: string) =>
+      dispatch(
+        editorUpdate(id, editor => ({
+          ...editor,
+          filename,
+          modified: true
+        }))
+      ),
+    [dispatch]
+  );
+
   let editors = Object.entries(props.editors.states).map(
-    ([i, e]: [string, EditorState]) => {
+    ([id, e]: [string, EditorState]) => {
       return (
-        <section key={i} className="section">
+        <section key={id} className="section">
           <div className="container">
-            <File id={i} editor={e} />
+            <File
+              id={id}
+              editor={e}
+              onChange={onChange}
+              onTypeChange={onTypeChange}
+              onFileNameChange={onFileNameChange}
+            />
           </div>
         </section>
       );

@@ -49,9 +49,9 @@ function NavBar(props: { modified: boolean }) {
         <div className="navbar-start">
           <RouteLink to="/">{"New" + (props.modified ? " *" : "")}</RouteLink>
 
-          <RouteLink to="yours">Your pastes</RouteLink>
+          <RouteLink to="/yours">Your pastes</RouteLink>
 
-          <RouteLink to="favorite">Favorite</RouteLink>
+          <RouteLink to="/favorite">Favorite</RouteLink>
         </div>
 
         <div className="navbar-end">

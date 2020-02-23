@@ -1,9 +1,9 @@
 import { connect } from "react-redux";
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import Editor from "./Editor";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { editorUpdate, editorRemove } from "../action";
+import { editorRemove } from "../action";
 import { EditorState } from "../state";
 import CodeMirror from "codemirror";
 import "codemirror/mode/meta";
@@ -15,14 +15,25 @@ interface FileProps {
   dispatch: (action: any) => void;
   id: string;
   editor: EditorState;
+  onChange: (id: string, content: string) => void;
+  onTypeChange: (id: string, type: string) => void;
+  onFileNameChange: (id: string, filename: string) => void;
 }
 
 const File = (props: FileProps) => {
-  const { dispatch, id, editor } = props;
+  const {
+    dispatch,
+    id,
+    editor,
+    onChange,
+    onTypeChange,
+    onFileNameChange
+  } = props;
 
   const autoMode = useMemo(
-    // @ts-ignore
-    () => CodeMirror.findModeByFileName(editor.filename),
+    () =>
+      // @ts-ignore
+      editor.filename ? CodeMirror.findModeByFileName(editor.filename) : "",
     [editor.filename]
   );
 
@@ -30,7 +41,7 @@ const File = (props: FileProps) => {
     // @ts-ignore
     return CodeMirror.modeInfo.map(mi => {
       return (
-        <option key={mi.name} value={mi.type}>
+        <option key={mi.name} value={mi.mime}>
           {mi.name}
         </option>
       );
@@ -38,23 +49,16 @@ const File = (props: FileProps) => {
   }, []);
 
   const [state, setState] = useState({ typeSelect: editor.type || TYPE_AUTO });
-  const { typeSelect } = state;
 
-  const currentType =
-    typeSelect === TYPE_AUTO ? autoMode?.mime || "" : typeSelect;
-
-  useEffect(() => {
-    dispatch(
-      editorUpdate(id, editor => {
-        const modified = editor.modified || currentType !== "";
-        return {
-          ...editor,
-          type: currentType,
-          modified
-        };
-      })
-    );
-  }, [currentType, dispatch, id]);
+  const dispatchTypeChange = (typeSelect: string, filename: string) => {
+    const autoMime = filename
+    // @ts-ignore
+      ? CodeMirror.findModeByFileName(filename)?.mime
+      : "";
+    const currentType = typeSelect === TYPE_AUTO ? autoMime || "" : typeSelect;
+    console.log(typeSelect, currentType);
+    onTypeChange(id, currentType);
+  };
 
   return (
     <div className="panel">
@@ -67,16 +71,12 @@ const File = (props: FileProps) => {
                 type="text"
                 placeholder="Filename"
                 value={editor.filename}
-                onChange={e =>
-                  dispatch(
-                    editorUpdate(id, {
-                      ...editor,
-                      filename: e.target.value,
-                      type: currentType,
-                      modified: true
-                    })
-                  )
-                }
+                onChange={e => {
+                  const filename = e.target.value;
+                  onFileNameChange(id, filename);
+                  if (state.typeSelect === TYPE_AUTO)
+                    dispatchTypeChange(state.typeSelect, filename);
+                }}
               />
               <span className="icon is-left">
                 <FontAwesomeIcon icon={faFileAlt} />
@@ -88,7 +88,9 @@ const File = (props: FileProps) => {
               <div className="select is-fullwidth">
                 <select
                   onChange={e => {
-                    setState({ typeSelect: e.target.value });
+                    const typeSelect = e.target.value;
+                    setState({ typeSelect });
+                    dispatchTypeChange(typeSelect, editor.filename);
                   }}
                   value={state.typeSelect}
                 >
@@ -119,7 +121,10 @@ const File = (props: FileProps) => {
         </div>
       </div>
       <div className="panel-item">
-        <Editor id={id} editor={editor} />
+        <Editor
+          onChange={useCallback((s: string) => onChange(id, s), [id, onChange])}
+          editor={editor}
+        />
       </div>
     </div>
   );
