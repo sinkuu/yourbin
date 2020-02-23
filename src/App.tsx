@@ -2,7 +2,10 @@ import React from "react";
 import "./App.sass";
 // import "bulma";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSearch,
+  faExclamationTriangle
+} from "@fortawesome/free-solid-svg-icons";
 import { HashRouter, Route, NavLink, Switch } from "react-router-dom";
 import New from "./components/page/New";
 import { connect } from "react-redux";
@@ -55,6 +58,24 @@ function NavBar(props: { modified: boolean }) {
         </div>
 
         <div className="navbar-end">
+          {window.ipfs ? (
+            []
+          ) : (
+            <div className="navbar-item has-dropdown is-active">
+              <div className="navbar-dropdown is-right">
+                <div className="navbar-item">
+                  <span className="icon">
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                  </span>
+                  This site requires local IPFS daemon and&nbsp;
+                  <a href="https://github.com/ipfs-shipyard/ipfs-companion/">
+                    IPFS Companion
+                  </a>
+                  &nbsp;installed.
+                </div>
+              </div>
+            </div>
+          )}
           <div className="navbar-item">
             <p className="control has-icons-left">
               <input className="input" type="text" placeholder="IPFS Path" />
@@ -85,7 +106,7 @@ function App(props: { modified: boolean }) {
               <Favorite />
             </Route>
             <Route path="/view/ipfs/:path">
-              <View/>
+              <View />
             </Route>
           </Switch>
         </div>
