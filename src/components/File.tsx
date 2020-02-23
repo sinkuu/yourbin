@@ -30,14 +30,14 @@ const File = (props: FileProps) => {
     // @ts-ignore
     return CodeMirror.modeInfo.map(mi => {
       return (
-        <option key={mi.name} value={mi.mime}>
+        <option key={mi.name} value={mi.type}>
           {mi.name}
         </option>
       );
     });
   }, []);
 
-  const [state, setState] = useState({ typeSelect: editor.type === "" ? TYPE_AUTO : editor.type });
+  const [state, setState] = useState({ typeSelect: editor.type || TYPE_AUTO });
   const { typeSelect } = state;
 
   const currentType =

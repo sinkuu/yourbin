@@ -1,6 +1,6 @@
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 // import "./index.css";
 import { editorUpdate } from "../action";
 import "codemirror/mode/apl/apl";
@@ -137,22 +137,20 @@ const Editor = (props: any) => {
 
   const { id, dispatch, editor } = props;
 
+  const changesHandler = useCallback((inst: any) => {
+    dispatch(
+      editorUpdate(id, editor => ({
+        ...editor,
+        modified: true,
+        content: inst.getValue()
+      }))
+    );
+  }, [dispatch, id]);
+
   useEffect(() => {
     const codemirror = CodeMirror.fromTextArea(textarea.current!, {
       lineNumbers: true
     });
-
-    const changesHandler = (inst: any) => {
-      dispatch(
-        editorUpdate(id, editor => ({
-          ...editor,
-          modified: true,
-          content: inst.getValue()
-        }))
-      );
-    };
-
-    codemirror.setValue(editor.content);
 
     codemirror.on("changes", changesHandler);
 
@@ -161,7 +159,16 @@ const Editor = (props: any) => {
     return () => {
       codemirror.toTextArea();
     };
-  }, [id, dispatch]);
+  }, [id, dispatch, changesHandler]);
+
+  useEffect(() => {
+    const { codemirror } = state;
+    if (codemirror && codemirror.getValue() === "") {
+      codemirror.off("changes", changesHandler);
+      codemirror.setValue(editor.content);
+      codemirror.on("changes", changesHandler);
+    }
+  }, [state, editor.content, changesHandler]);
 
   useEffect(() => {
     const { codemirror } = state;

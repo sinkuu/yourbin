@@ -1,57 +1,66 @@
 import { connect } from "react-redux";
 import React, { useState, useEffect } from "react";
-import CodeMirror from "codemirror";
-import "codemirror/addon/runmode";
-import BufferList from "bl";
-
-// https://blog.inkdrop.info/making-a-syntax-highlighter-using-codemirror-for-reactjs-b8169038432a
-const Highlight = (props: any) => {
-  const { type, content } = props;
-
-  const elements: any[] = [];
-  let index = 0;
-  const pushElement = (token: string, style: string) => {
-    elements.push(
-      <span className={style || ""} key={++index}>
-        {token}
-      </span>
-    );
-  };
-  // @ts-ignore
-  CodeMirror.runMode(content, type, pushElement);
-
-  return (
-    <code>
-      <pre>{elements}</pre>
-    </code>
-  );
-};
+import { getIpfs, FilesInfo, ipfsCat } from "../../ipfs";
+import ViewFile from "../ViewFile";
+import { useParams } from "react-router-dom";
 
 const ViewPaste = (props: any) => {
-  const { ipfsPath } = props;
+  const { path } = useParams();
 
-  const [state, setState] = useState({ fileinfos: null });
+  const ipfsPath = "/ipfs/" + path;
+
+  const { dispatch } = props;
+
+  const [state, setState] = useState<{ files: any }>({ files: {} });
 
   useEffect(() => {
     const getFileInfos = async () => {
-      if (window.ipfs && window.ipfs.enable) {
-        const ipfs = await window.ipfs.enable({ commands: ["get"] });
+      const ipfs = await getIpfs();
 
-        const getResult = await ipfs.get(ipfsPath + "/.yourbin.js");
-        const content = new BufferList();
-        for await (const chunk of getResult.content) {
-          content.append(chunk);
-        }
-        const fileinfos = JSON.parse(content.toString());
+      if (!ipfs) return;
 
-        setState({ fileinfos });
+      const json = await ipfsCat(ipfs, ipfsPath + "/.yourbin.json");
+      console.log(json);
+      const filesinfo: FilesInfo = JSON.parse(json);
+
+      let files: any = {};
+      for (const id in filesinfo) {
+        files[id] = {
+          filename: filesinfo[id].filename,
+          type: filesinfo[id].type,
+          loading: true,
+          content: ""
+        };
+      }
+
+      console.log(files);
+
+      setState({ files });
+
+      for (const entry of Object.entries(filesinfo)) {
+        const [id, info]: [string, { filename: string; type: string }] = entry;
+        const content = await ipfsCat(ipfs, ipfsPath + "/" + info.filename);
+        files[id] = { ...files[id], loading: false, content };
+        console.log(files);
+        setState({ files });
       }
     };
 
     getFileInfos();
-  }, [ipfsPath]);
+  }, [ipfsPath, dispatch]);
 
-  return <div></div>;
+  const files = Object.entries(state.files).map(([id, info]: [string, any]) => {
+    return (
+      <ViewFile
+        filename={info.filename}
+        type={info.type}
+        loading={info.loading}
+        content={info.content}
+      />
+    );
+  });
+
+  return <div>{files}</div>;
 };
 
 export default connect()(ViewPaste);

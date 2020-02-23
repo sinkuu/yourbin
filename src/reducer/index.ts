@@ -1,4 +1,4 @@
-import { State, Editors } from "../state";
+import { State, Editors, IpfsState } from "../state";
 import { Actions } from "../action";
 import { produce, Draft } from "immer";
 import { combineReducers } from "redux";
@@ -15,6 +15,9 @@ export const initialState: State = {
         indent: { mode: "space", size: 4 }
       }
     }
+  },
+  ipfs: {
+    ipfs: null
   }
 };
 
@@ -34,13 +37,15 @@ export default combineReducers({
 
         case Actions.EditorDiscardAll: {
           draft.states = {};
-          draft.states[draft.next_id.toString()] = initialState.editors.states[0];
+          draft.states[draft.next_id.toString()] =
+            initialState.editors.states[0];
           draft.next_id++;
           break;
         }
 
         case Actions.EditorAdd: {
-          draft.states[draft.next_id.toString()] = initialState.editors.states[0];
+          draft.states[draft.next_id.toString()] =
+            initialState.editors.states[0];
           draft.next_id++;
           break;
         }
@@ -50,8 +55,15 @@ export default combineReducers({
           delete draft.states[id];
           break;
         }
-
-        default:
+      }
+    }),
+  ipfs: (state: any = initialState.editors, action: any) =>
+    produce(state, (draft: Draft<IpfsState>) => {
+      switch (action.type) {
+        case Actions.IpfsSetInstance: {
+          draft.ipfs = action.payload;
+          break;
+        }
       }
     })
 });

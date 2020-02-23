@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 import { State, EditorState } from "./state";
 import Favorite from "./components/page/Favorite";
 import UnloadPrompt from "./components/UnloadPrompt";
+import View from "./components/page/View";
 
 function RouteLink(props: { to: string; children: string }) {
   return (
@@ -56,7 +57,7 @@ function NavBar(props: { modified: boolean }) {
         <div className="navbar-end">
           <div className="navbar-item">
             <p className="control has-icons-left">
-              <input className="input" type="text" placeholder="IPFS CID" />
+              <input className="input" type="text" placeholder="IPFS Path" />
               <span className="icon is-left">
                 <FontAwesomeIcon icon={faSearch} />
               </span>
@@ -82,6 +83,9 @@ function App(props: { modified: boolean }) {
             <Route path="/yours">yours</Route>
             <Route path="/favorite">
               <Favorite />
+            </Route>
+            <Route path="/view/ipfs/:path">
+              <View/>
             </Route>
           </Switch>
         </div>

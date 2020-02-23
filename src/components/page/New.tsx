@@ -5,6 +5,8 @@ import { State, Editors, EditorState } from "../../state";
 import { editorAdd, editorDiscardAll } from "../../action";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { FilesInfo } from "../../ipfs";
+import { useHistory } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -32,6 +34,8 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
     props.dispatch(editorAdd());
   };
 
+  const history = useHistory();
+
   const publish = async () => {
     const editors = Object.entries(props.editors.states);
     props.dispatch(editorDiscardAll());
@@ -43,11 +47,11 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
       mtime: { secs: new Date().getTime() }
     }));
 
-    let filesinfo = editors.reduce(
+    let filesinfo: FilesInfo = editors.reduce(
       (o, [id, editor]) => ({
         ...o,
         [id]: {
-          filename: editor.filename,
+          filename: editor.filename || id,
           type: editor.type
         }
       }),
@@ -69,7 +73,9 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
         wrapWithDirectory: true
       });
 
+      // history.push()
       console.log(result);
+      history.push("/view/ipfs/" + result.slice(-1)[0].hash);
     }
   };
 

@@ -1,5 +1,10 @@
 export interface State {
   readonly editors: Editors;
+  readonly ipfs: IpfsState;
+}
+
+export interface IpfsState {
+  ipfs: any;
 }
 
 export interface Editors {
