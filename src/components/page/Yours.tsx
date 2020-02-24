@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { getIpfs, ipfsCat } from "../../ipfs";
+import { setErrorMessage } from "../../action";
+import { connect } from "react-redux";
 const classNames = require("classnames");
 
 function Item(props: {
@@ -61,7 +63,7 @@ function Item(props: {
   );
 }
 
-export default function Yours(props: any) {
+function Yours(props: { dispatch: (action: any) => void }) {
   const [state, setState] = useState<{
     num_files: number;
     load_done: boolean;
@@ -78,6 +80,8 @@ export default function Yours(props: any) {
   const pagei = parseInt(page || "1", 10) - 1;
 
   console.log(pagei);
+
+  const { dispatch } = props;
 
   useEffect(() => {
     const getList = async () => {
@@ -117,9 +121,10 @@ export default function Yours(props: any) {
     };
     getList().catch((error: any) => {
       console.log(error);
+      dispatch(setErrorMessage(error.toString()));
       setState(s => ({ ...s, load_done: true }));
     });
-  }, [pagei]);
+  }, [pagei, dispatch]);
 
   const onRemove = useCallback(name => {
     const remove = async () => {
@@ -185,3 +190,5 @@ export default function Yours(props: any) {
     </div>
   );
 }
+
+export default connect()(Yours);

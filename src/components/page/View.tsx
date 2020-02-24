@@ -1,4 +1,3 @@
-import { connect } from "react-redux";
 import React, { useState, useEffect } from "react";
 import { getIpfs, FilesInfo, ipfsCat } from "../../ipfs";
 import ViewFile from "../ViewFile";
@@ -10,8 +9,6 @@ const ViewPaste = (props: any) => {
   const { path } = useParams();
 
   const ipfsPath = "/ipfs/" + path;
-
-  const { dispatch } = props;
 
   const [state, setState] = useState<{ description: string; files: any[] }>({
     description: "",
@@ -51,7 +48,7 @@ const ViewPaste = (props: any) => {
     };
 
     getFileInfos();
-  }, [ipfsPath, dispatch]);
+  }, [ipfsPath]);
 
   const files = Object.entries(state.files).map(([id, info]: [string, any]) => {
     return (
@@ -125,4 +122,4 @@ const ViewPaste = (props: any) => {
   );
 };
 
-export default connect()(ViewPaste);
+export default ViewPaste;

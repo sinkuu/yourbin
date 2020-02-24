@@ -7,7 +7,8 @@ import {
   editorDiscardAll,
   editorUpdate,
   editorRemove,
-  editorSetDescription
+  editorSetDescription,
+  setErrorMessage
 } from "../../action";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -24,7 +25,7 @@ declare global {
   }
 }
 
-const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
+function New(props: { dispatch: (action: any) => void; editors: Editors }) {
   const { dispatch } = props;
 
   const onChange = useCallback(
@@ -94,7 +95,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
     [dispatch]
   );
 
-  let editors = Object.entries(props.editors.states).map(
+  let editorsRender = Object.entries(props.editors.states).map(
     ([id, e]: [string, EditorState]) => {
       return (
         <section key={id} className="section">
@@ -121,85 +122,94 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
 
   const history = useHistory();
 
-  const publish = async () => {
-    let editors = Object.entries(props.editors.states);
-    const description = props.editors.description;
-    props.dispatch(editorDiscardAll());
-    editors.sort(([k1, _v1], [k2, _v2]) => parseInt(k1, 10) - parseInt(k2, 10));
-    editors = editors.map(([id, e], i) => [i.toString(), e]);
+  const { editors } = props;
 
-    editors = editors.map(([id, e]: [string, EditorState]) => {
-      let filename;
-      let ext;
-      if (e.filename) {
-        filename = e.filename;
-        // @ts-ignore
-      } else if ((ext = CodeMirror.findModeByMIME(e.type)?.ext[0])) {
-        filename = id + "." + ext;
-      } else {
-        filename = id + ".txt";
-      }
+  const publish = useCallback(() => {
+    const f = async () => {
+      let editorEntries = Object.entries(editors.states);
+      const description = editors.description;
+      dispatch(editorDiscardAll());
+      editorEntries.sort(
+        ([k1, _v1], [k2, _v2]) => parseInt(k1, 10) - parseInt(k2, 10)
+      );
+      editorEntries = editorEntries.map(([id, e], i) => [i.toString(), e]);
 
-      return [
-        id,
-        {
-          ...e,
-          filename
+      editorEntries = editorEntries.map(([id, e]: [string, EditorState]) => {
+        let filename;
+        let ext;
+        if (e.filename) {
+          filename = e.filename;
+          // @ts-ignore
+        } else if ((ext = CodeMirror.findModeByMIME(e.type)?.ext[0])) {
+          filename = id + "." + ext;
+        } else {
+          filename = id + ".txt";
         }
-      ];
-    });
 
-    const files: any[] = editors.map(([id, e]: [string, EditorState]) => ({
-      path: "/" + e.filename,
-      content: e.content || [],
-      mtime: { secs: Math.floor(new Date().getTime() / 1000) }
-    }));
-
-    const filesinfo: FilesInfo = { description, files: [] };
-
-    editors.forEach(([id, editor]) => {
-      filesinfo.files.push({
-        filename: editor.filename,
-        type: editor.type
-      });
-    });
-
-    files.push({
-      path: "/.yourbin.json",
-      content: JSON.stringify(filesinfo),
-      mtime: null
-    });
-
-    if (window.ipfs && window.ipfs.enable) {
-      const ipfs = await window.ipfs.enable({ commands: ["add"] });
-      const result = await ipfs.add(files, {
-        hashAlg: "blake2b-256",
-        cidVersion: 1,
-        pin: false,
-        wrapWithDirectory: true
+        return [
+          id,
+          {
+            ...e,
+            filename
+          }
+        ];
       });
 
-      console.log(result);
+      const files: any[] = editorEntries.map(
+        ([id, e]: [string, EditorState]) => ({
+          path: "/" + e.filename,
+          content: e.content || [],
+          mtime: { secs: Math.floor(new Date().getTime() / 1000) }
+        })
+      );
 
-      const ipfsPath = "/ipfs/" + result.slice(-1)[0].hash;
+      const filesinfo: FilesInfo = { description, files: [] };
 
-      await ipfs.files.mkdir("/yours", {
-        parents: true,
-        hashAlg: "blake2b-256"
+      editorEntries.forEach(([id, editor]) => {
+        filesinfo.files.push({
+          filename: editor.filename,
+          type: editor.type
+        });
       });
-      await ipfs.files.cp(ipfsPath, "/yours/" + new Date().getTime(), {
-        hashAlg: "blake2b-256"
+
+      files.push({
+        path: "/.yourbin.json",
+        content: JSON.stringify(filesinfo),
+        mtime: null
       });
 
-      history.push("/view" + ipfsPath);
-    }
-  };
+      if (window.ipfs && window.ipfs.enable) {
+        const ipfs = await window.ipfs.enable({ commands: ["add"] });
+        const result = await ipfs.add(files, {
+          hashAlg: "blake2b-256",
+          cidVersion: 1,
+          pin: false,
+          wrapWithDirectory: true
+        });
+
+        console.log(result);
+
+        const ipfsPath = "/ipfs/" + result.slice(-1)[0].hash;
+
+        await ipfs.files.mkdir("/yours", {
+          parents: true,
+          hashAlg: "blake2b-256"
+        });
+        await ipfs.files.cp(ipfsPath, "/yours/" + new Date().getTime(), {
+          hashAlg: "blake2b-256"
+        });
+
+        history.push("/view" + ipfsPath);
+      }
+    };
+    f().catch((err: any) => dispatch(setErrorMessage(err.toString())));
+  }, [dispatch, history, editors]);
 
   return (
     <div>
-      {editors}
+      {editorsRender}
 
-      <div className="container">
+      <div className="container" style={{ marginBottom: "5%" }}>
         <nav className="level">
           <div className="level-left">
             <div className="level-item">
@@ -247,7 +257,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
               </div> */}
     </div>
   );
-};
+}
 
 const mapStateToProps = (state: State) => ({
   editors: state.editors

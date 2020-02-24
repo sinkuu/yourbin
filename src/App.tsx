@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import "./App.sass";
 // import "bulma";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,6 +20,8 @@ import Favorite from "./components/page/Favorite";
 import UnloadPrompt from "./components/UnloadPrompt";
 import View from "./components/page/View";
 import Yours from "./components/page/Yours";
+import { setErrorMessage } from "./action";
+const classNames = require("classnames");
 
 function RouteLink(props: { to: string; children: string; exact: boolean }) {
   return (
@@ -36,6 +38,8 @@ function RouteLink(props: { to: string; children: string; exact: boolean }) {
 
 function NavBar(props: { modified: boolean }) {
   const history = useHistory();
+
+  const [state, setState] = useState({ burgerActive: false });
 
   const onSearch = useCallback(
     e => {
@@ -57,7 +61,12 @@ function NavBar(props: { modified: boolean }) {
     >
       <div className="navbar-brand">
         <button
-          className="button navbar-burger burger"
+          className={classNames("button navbar-burger burger", {
+            "is-active": state.burgerActive
+          })}
+          onClick={() => {
+            setState({ burgerActive: !state.burgerActive });
+          }}
           aria-label="menu"
           aria-expanded="false"
           data-target="navbarBasicExample"
@@ -69,34 +78,42 @@ function NavBar(props: { modified: boolean }) {
         </button>
       </div>
 
-      <div id="navbarBasicExample" className="navbar-menu">
+      <div
+        className={classNames("navbar-menu", {
+          "is-active": state.burgerActive
+        })}
+      >
         <div className="navbar-start">
-          <RouteLink exact to="/">{"New" + (props.modified ? " *" : "")}</RouteLink>
+          <RouteLink exact to="/">
+            {"New" + (props.modified ? " *" : "")}
+          </RouteLink>
 
-          <RouteLink exact={false} to="/yours">Your pastes</RouteLink>
+          <RouteLink exact={false} to="/yours">
+            Your pastes
+          </RouteLink>
 
           {/* <RouteLink to="/favorite">Favorite</RouteLink> */}
         </div>
 
         <div className="navbar-end">
-          {window.ipfs ? (
-            []
-          ) : (
-            <div className="navbar-item has-dropdown is-active">
-              <div className="navbar-dropdown is-right">
-                <div className="navbar-item">
-                  <span className="icon">
-                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                  </span>
-                  This site requires local IPFS daemon and&nbsp;
-                  <a href="https://github.com/ipfs-shipyard/ipfs-companion/">
-                    IPFS Companion
-                  </a>
-                  &nbsp;installed.
-                </div>
+          <div className="navbar-item has-dropdown is-active">
+            <div
+              className={classNames("navbar-dropdown is-right", {
+                "is-hidden": !!window.ipfs
+              })}
+            >
+              <div className="navbar-item">
+                <span className="icon">
+                  <FontAwesomeIcon icon={faExclamationTriangle} />
+                </span>
+                This site requires local IPFS daemon and&nbsp;
+                <a href="https://github.com/ipfs-shipyard/ipfs-companion/">
+                  IPFS Companion
+                </a>
+                &nbsp;installed.
               </div>
             </div>
-          )}
+          </div>
           <div className="navbar-item">
             <p className="control has-icons-left">
               <input
@@ -116,28 +133,58 @@ function NavBar(props: { modified: boolean }) {
   );
 }
 
-function App(props: { modified: boolean }) {
+function Notification(props: {
+  message: string | null;
+  onCloseButtonClicked: () => void;
+}) {
+  const { message, onCloseButtonClicked } = props;
+
+  return (
+    <div className={classNames("container", { "is-hidden": !message })}>
+      <div id="error_notification" className="notification is-warning is-light">
+        <button
+          className="delete"
+          aria-label="delete"
+          onClick={onCloseButtonClicked}
+        ></button>
+        <span className="icon">
+          <FontAwesomeIcon icon={faExclamationTriangle} />
+        </span>
+        <span>{message}</span>
+      </div>
+    </div>
+  );
+}
+
+function App(props: {
+  dispatch: (action: any) => void;
+  modified: boolean;
+  error_message: string | null;
+}) {
+  const { dispatch, modified, error_message } = props;
   return (
     <HashRouter>
-      <UnloadPrompt when={props.modified} />
-      <div>
-        <NavBar modified={props.modified} />
-        <div>
-          <Switch>
-            <Route path="/" exact>
-              <New />
-            </Route>
-            <Route exact path="/yours/:page?" component={Yours}>
-            </Route>
-            <Route path="/favorite">
-              <Favorite />
-            </Route>
-            <Route path="/view/ipfs/:path">
-              <View />
-            </Route>
-          </Switch>
-        </div>
-      </div>
+      <UnloadPrompt when={modified} />
+      <NavBar modified={modified} />
+      <Notification
+        message={error_message}
+        onCloseButtonClicked={useCallback(
+          () => dispatch(setErrorMessage(null)),
+          [dispatch]
+        )}
+      />
+      <Switch>
+        <Route path="/" exact>
+          <New />
+        </Route>
+        <Route exact path="/yours/:page?" component={Yours} />
+        <Route path="/favorite">
+          <Favorite />
+        </Route>
+        <Route path="/view/ipfs/:path">
+          <View />
+        </Route>
+      </Switch>
     </HashRouter>
   );
 }
@@ -146,7 +193,8 @@ const mapStateToProps = (state: State) => {
   return {
     modified: Object.values(state.editors.states).some(
       (e: EditorState) => e.modified
-    )
+    ),
+    error_message: state.error_message
   };
 };
 

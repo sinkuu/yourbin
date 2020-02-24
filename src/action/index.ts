@@ -5,7 +5,8 @@ export enum Actions {
   EditorDiscardAll = "EDITOR_DISCARD_ALL",
   EditorAdd = "EDITOR_ADD",
   EditorRemove = "EDITOR_REMOVE",
-  EditorSetDescription = "EDITOR_SET_DESCRIPTION"
+  EditorSetDescription = "EDITOR_SET_DESCRIPTION",
+  SetErrorMessage = "SET_ERROR_MESSAGE"
 }
 
 export const editorUpdate = (
@@ -32,4 +33,9 @@ export const editorRemove = (id: string) => ({
 export const editorSetDescription = (desc: string) => ({
   type: Actions.EditorSetDescription,
   payload: desc
+});
+
+export const setErrorMessage = (message: string | null) => ({
+  type: Actions.SetErrorMessage,
+  payload: message
 });

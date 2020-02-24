@@ -16,7 +16,8 @@ export const initialState: State = {
       }
     },
     description: ""
-  }
+  },
+  error_message: null
 };
 
 export default combineReducers({
@@ -60,5 +61,11 @@ export default combineReducers({
           break;
         }
       }
-    })
+    }),
+  error_message: (state: string | null = null, action: any) => {
+    if (action.type === Actions.SetErrorMessage) {
+      state = action.payload;
+    }
+    return state;
+  }
 });
