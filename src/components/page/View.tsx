@@ -13,9 +13,9 @@ const ViewPaste = (props: any) => {
 
   const { dispatch } = props;
 
-  const [state, setState] = useState<{ description: string; files: any }>({
+  const [state, setState] = useState<{ description: string; files: any[] }>({
     description: "",
-    files: {}
+    files: []
   });
 
   useEffect(() => {
@@ -28,23 +28,23 @@ const ViewPaste = (props: any) => {
       console.log(json);
       const filesinfo: FilesInfo = JSON.parse(json);
 
-      let files: any = {};
-      for (const id in filesinfo.files) {
-        files[id] = {
-          filename: filesinfo.files[id].filename,
-          type: filesinfo.files[id].type,
+      const files: any[] = [];
+      for (const file of filesinfo.files) {
+        files.push({
+          filename: file.filename,
+          type: file.type,
           loading: true,
           content: ""
-        };
+        });
       }
 
       setState({ description: filesinfo.description, files });
 
-      for (const entry of Object.entries(filesinfo.files)) {
-        const [id, info]: [string, { filename: string; type: string }] = entry;
+      for (let i = 0; i < files.length; i++) {
+        const info: { filename: string; type: string } = files[i];
         console.log(info);
         const content = await ipfsCat(ipfs, ipfsPath + "/" + info.filename);
-        files[id] = { ...files[id], loading: false, content };
+        files[i] = { ...files[i], loading: false, content };
         console.log(files);
         setState((s: any) => ({ ...s, files }));
       }

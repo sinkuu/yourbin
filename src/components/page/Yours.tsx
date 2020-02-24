@@ -44,7 +44,7 @@ function Item(props: {
             </div>
           </nav>
 
-          {files.length === 1 && files[0] === "0" ? (
+          {files.length === 1 && files[0] === "0.txt" ? (
             []
           ) : (
             <p>

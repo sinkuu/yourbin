@@ -22,11 +22,9 @@ export async function ipfsCat(ipfs: any, path: string): Promise<string> {
 }
 
 export interface FilesInfo {
-  description: string,
+  description: string;
   files: {
-    [id: string]: {
-      filename: string;
-      type: string;
-    };
-  };
+    filename: string;
+    type: string;
+  }[];
 }

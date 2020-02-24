@@ -126,6 +126,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
     const description = props.editors.description;
     props.dispatch(editorDiscardAll());
     editors.sort(([k1, _v1], [k2, _v2]) => parseInt(k1, 10) - parseInt(k2, 10));
+    editors = editors.map(([id, e], i) => [i.toString(), e]);
 
     editors = editors.map(([id, e]: [string, EditorState]) => {
       let filename;
@@ -136,7 +137,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
       } else if ((ext = CodeMirror.findModeByMIME(e.type)?.ext[0])) {
         filename = id + "." + ext;
       } else {
-        filename = id;
+        filename = id + ".txt";
       }
 
       return [
@@ -154,19 +155,14 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
       mtime: { secs: Math.floor(new Date().getTime() / 1000) }
     }));
 
-    let filesinfo: FilesInfo = editors.reduce(
-      (o, [id, editor]) => ({
-        ...o,
-        files: {
-          ...o.files,
-          [id]: {
-            filename: editor.filename,
-            type: editor.type
-          }
-        }
-      }),
-      { description, files: {} }
-    );
+    const filesinfo: FilesInfo = { description, files: [] };
+
+    editors.forEach(([id, editor]) => {
+      filesinfo.files.push({
+        filename: editor.filename,
+        type: editor.type
+      });
+    });
 
     files.push({
       path: "/.yourbin.json",
