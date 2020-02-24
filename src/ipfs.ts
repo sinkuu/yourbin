@@ -5,7 +5,17 @@ export async function getIpfs() {
 
   if (window.ipfs && window.ipfs.enable) {
     instance = await window.ipfs.enable({
-      commands: ["add", "get", "cat", "files.mkdir", "files.cp", "files.ls"]
+      commands: [
+        "add",
+        "files.add",
+        "files.cat",
+        "files.cp",
+        "files.get",
+        "files.ls",
+        "files.mkdir",
+        "files.rm",
+        "files.stat"
+      ]
     });
     return instance;
   } else {
