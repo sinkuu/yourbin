@@ -2,7 +2,12 @@ import React, { useCallback } from "react";
 import { connect } from "react-redux";
 import File from "../File";
 import { State, Editors, EditorState } from "../../state";
-import { editorAdd, editorDiscardAll, editorUpdate } from "../../action";
+import {
+  editorAdd,
+  editorDiscardAll,
+  editorUpdate,
+  editorRemove
+} from "../../action";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FilesInfo } from "../../ipfs";
@@ -60,6 +65,34 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
     [dispatch]
   );
 
+  const onRemove = useCallback((id: string) => dispatch(editorRemove(id)), [
+    dispatch
+  ]);
+
+  const onIndentModeChange = useCallback(
+    (id: string, mode: "space" | "tab") => {
+      dispatch(
+        editorUpdate(id, editor => ({
+          ...editor,
+          indent: { ...editor.indent, mode }
+        }))
+      );
+    },
+    [dispatch]
+  );
+
+  const onIndentSizeChange = useCallback(
+    (id: string, size: number) => {
+      dispatch(
+        editorUpdate(id, editor => ({
+          ...editor,
+          indent: { ...editor.indent, size }
+        }))
+      );
+    },
+    [dispatch]
+  );
+
   let editors = Object.entries(props.editors.states).map(
     ([id, e]: [string, EditorState]) => {
       return (
@@ -71,6 +104,9 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
               onChange={onChange}
               onTypeChange={onTypeChange}
               onFileNameChange={onFileNameChange}
+              onRemove={onRemove}
+              onIndentModeChange={onIndentModeChange}
+              onIndentSizeChange={onIndentSizeChange}
             />
           </div>
         </section>

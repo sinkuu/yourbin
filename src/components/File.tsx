@@ -1,39 +1,42 @@
-import { connect } from "react-redux";
 import React, { useMemo, useState, useCallback } from "react";
 import Editor from "./Editor";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { editorRemove } from "../action";
 import { EditorState } from "../state";
 import CodeMirror from "codemirror";
 import "codemirror/mode/meta";
 import IndentConfig from "./IndentConfig";
 
+// @ts-ignore
+const findModeByFileName = CodeMirror.findModeByFileName;
+
 const TYPE_AUTO = "__AUTO";
 
 interface FileProps {
-  dispatch: (action: any) => void;
   id: string;
   editor: EditorState;
   onChange: (id: string, content: string) => void;
   onTypeChange: (id: string, type: string) => void;
   onFileNameChange: (id: string, filename: string) => void;
+  onRemove: (id: string) => void;
+  onIndentModeChange: (id: string, mode: "space" | "tab") => void;
+  onIndentSizeChange: (id: string, size: number) => void;
 }
 
 const File = (props: FileProps) => {
   const {
-    dispatch,
     id,
     editor,
     onChange,
     onTypeChange,
-    onFileNameChange
+    onFileNameChange,
+    onRemove,
+    onIndentModeChange,
+    onIndentSizeChange
   } = props;
 
   const autoMode = useMemo(
-    () =>
-      // @ts-ignore
-      editor.filename ? CodeMirror.findModeByFileName(editor.filename) : "",
+    () => findModeByFileName(editor.filename ? editor.filename : ""),
     [editor.filename]
   );
 
@@ -51,12 +54,8 @@ const File = (props: FileProps) => {
   const [state, setState] = useState({ typeSelect: editor.type || TYPE_AUTO });
 
   const dispatchTypeChange = (typeSelect: string, filename: string) => {
-    const autoMime = filename
-    // @ts-ignore
-      ? CodeMirror.findModeByFileName(filename)?.mime
-      : "";
+    const autoMime = filename ? findModeByFileName(filename)?.mime : "";
     const currentType = typeSelect === TYPE_AUTO ? autoMime || "" : typeSelect;
-    console.log(typeSelect, currentType);
     onTypeChange(id, currentType);
   };
 
@@ -103,7 +102,17 @@ const File = (props: FileProps) => {
             </div>
           </div>
           <div className="column">
-            <IndentConfig indent={editor.indent} id={id} />
+            <IndentConfig
+              indent={editor.indent}
+              onModeChange={useCallback(
+                (mode: "space" | "tab") => onIndentModeChange(id, mode),
+                [onIndentModeChange, id]
+              )}
+              onSizeChange={useCallback(
+                (size: number) => onIndentSizeChange(id, size),
+                [onIndentSizeChange, id]
+              )}
+            />
           </div>
           <div className="column">
             <button
@@ -113,7 +122,7 @@ const File = (props: FileProps) => {
                   !editor.modified ||
                   window.confirm("Do you really want to remove this file?")
                 ) {
-                  dispatch(editorRemove(id));
+                  onRemove(id);
                 }
               }}
             ></button>
@@ -130,4 +139,4 @@ const File = (props: FileProps) => {
   );
 };
 
-export default connect()(File);
+export default File;

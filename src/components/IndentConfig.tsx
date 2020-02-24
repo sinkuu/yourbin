@@ -1,8 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import { connect } from "react-redux";
-import { editorUpdate } from "../action";
+import { IndentConfig } from "../state";
 
 const ModeButton = (props: {
   active: boolean;
@@ -20,28 +19,14 @@ const ModeButton = (props: {
   );
 };
 
-const IndentConfig = (props: any) => {
-  const { id, indent, dispatch } = props;
+interface IndentConfigProps {
+  indent: IndentConfig,
+  onModeChange: (mode: "space" | "tab") => void;
+  onSizeChange: (size: number) => void;
+}
 
-  console.log(props);
-
-  const setMode = (mode: "space" | "tab") => {
-    dispatch(
-      editorUpdate(id, editor => ({
-        ...editor,
-        indent: { ...editor.indent, mode }
-      }))
-    );
-  };
-
-  const setSize = (size: number) => {
-    dispatch(
-      editorUpdate(id, editor => ({
-        ...editor,
-        indent: { ...editor.indent, size }
-      }))
-    );
-  };
+export default (props: IndentConfigProps) => {
+  const { indent, onModeChange, onSizeChange } = props;
 
   const displayMode =
     indent.mode.charAt(0).toUpperCase() + indent.mode.slice(1);
@@ -63,14 +48,14 @@ const IndentConfig = (props: any) => {
           <div className="dropdown-item">
             <ModeButton
               active={indent.mode === "space"}
-              onClick={() => setMode("space")}
+              onClick={() => onModeChange("space")}
             >
               Spaces
             </ModeButton>
             &nbsp;
             <ModeButton
               active={indent.mode === "tab"}
-              onClick={() => setMode("tab")}
+              onClick={() => onModeChange("tab")}
             >
               Tabs
             </ModeButton>
@@ -82,7 +67,7 @@ const IndentConfig = (props: any) => {
               <input
                 type="number"
                 value={indent.size}
-                onChange={e => setSize(parseInt(e.target.value, 10))}
+                onChange={e => onSizeChange(parseInt(e.target.value, 10))}
               />
             </div>
           </div>
@@ -91,5 +76,3 @@ const IndentConfig = (props: any) => {
     </div>
   );
 };
-
-export default connect()(IndentConfig);
