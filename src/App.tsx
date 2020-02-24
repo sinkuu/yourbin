@@ -6,7 +6,13 @@ import {
   faSearch,
   faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
-import { HashRouter, Route, NavLink, Switch, useHistory } from "react-router-dom";
+import {
+  HashRouter,
+  Route,
+  NavLink,
+  Switch,
+  useHistory
+} from "react-router-dom";
 import New from "./components/page/New";
 import { connect } from "react-redux";
 import { State, EditorState } from "./state";
@@ -15,11 +21,11 @@ import UnloadPrompt from "./components/UnloadPrompt";
 import View from "./components/page/View";
 import Yours from "./components/page/Yours";
 
-function RouteLink(props: { to: string; children: string }) {
+function RouteLink(props: { to: string; children: string; exact: boolean }) {
   return (
     <NavLink
       to={props.to}
-      exact
+      exact={props.exact}
       className="navbar-item"
       activeClassName="navbar-item has-background-grey-lighter"
     >
@@ -31,14 +37,17 @@ function RouteLink(props: { to: string; children: string }) {
 function NavBar(props: { modified: boolean }) {
   const history = useHistory();
 
-  const onSearch = useCallback(e => {
-    const value: string = e.target.value;
-    const cid = value.replace(/^\/ipfs\/|\/$/g, '');
+  const onSearch = useCallback(
+    e => {
+      const value: string = e.target.value;
+      const cid = value.replace(/^\/ipfs\/|\/$/g, "");
 
-    if (cid.match(/^\w+/)) {
-      history.push("/view/ipfs/" + cid);
-    }
-  }, [history]);
+      if (cid.match(/^\w+/)) {
+        history.push("/view/ipfs/" + cid);
+      }
+    },
+    [history]
+  );
 
   return (
     <nav
@@ -62,9 +71,9 @@ function NavBar(props: { modified: boolean }) {
 
       <div id="navbarBasicExample" className="navbar-menu">
         <div className="navbar-start">
-          <RouteLink to="/">{"New" + (props.modified ? " *" : "")}</RouteLink>
+          <RouteLink exact to="/">{"New" + (props.modified ? " *" : "")}</RouteLink>
 
-          <RouteLink to="/yours">Your pastes</RouteLink>
+          <RouteLink exact={false} to="/yours">Your pastes</RouteLink>
 
           {/* <RouteLink to="/favorite">Favorite</RouteLink> */}
         </div>
@@ -118,8 +127,7 @@ function App(props: { modified: boolean }) {
             <Route path="/" exact>
               <New />
             </Route>
-            <Route path="/yours">
-              <Yours />
+            <Route exact path="/yours/:page?" component={Yours}>
             </Route>
             <Route path="/favorite">
               <Favorite />

@@ -204,24 +204,45 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
     <div>
       {editors}
 
-      <section className="section">
-        <div className="container">
-          <button className="button is-pulled-left" onClick={addNew}>
-            <span className="icon">
-              <FontAwesomeIcon icon={faPlus} />
-            </span>
-            <span>Add new file</span>
-          </button>
-
-          <div className="is-pulled-right">
-            <button className="button is-primary" onClick={publish}>
-              <span className="icon">
-                <FontAwesomeIcon icon={faUpload} />
-              </span>
-              <span>Publish</span>
-            </button>
+      <div className="container">
+        <nav className="level">
+          <div className="level-left">
+            <div className="level-item">
+              <button className="button" onClick={addNew}>
+                <span className="icon">
+                  <FontAwesomeIcon icon={faPlus} />
+                </span>
+                <span>Add new file</span>
+              </button>
+            </div>
           </div>
-          {/* <div className="column">
+
+          <div className="level-right">
+            <div className="level-item">
+              <div className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Description"
+                  size={50}
+                  value={props.editors.description}
+                  onChange={e => dispatch(editorSetDescription(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="level-item">
+              <button className="button is-primary" onClick={publish}>
+                <span className="icon">
+                  <FontAwesomeIcon icon={faUpload} />
+                </span>
+                <span>Publish</span>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      {/* <div className="column">
                 <button className="button">
                   <span className="icon">
                     <FontAwesomeIcon icon={faUpload} />
@@ -229,20 +250,6 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
                   <span>Publish (encrypted)</span>
                 </button>
               </div> */}
-        </div>
-        <div className="is-pulled-right" style={{ marginRight: "1em" }}>
-          <div className="control">
-            <input
-              className="input"
-              type="text"
-              placeholder="Description"
-              size={50}
-              value={props.editors.description}
-              onChange={e => dispatch(editorSetDescription(e.target.value))}
-            />
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

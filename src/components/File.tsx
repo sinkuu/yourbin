@@ -62,72 +62,78 @@ const File = (props: FileProps) => {
   return (
     <div className="panel">
       <div className="panel-heading">
-        <div className="columns">
-          <div className="column">
-            <p className="control has-icons-left">
-              <input
-                className="input"
-                type="text"
-                placeholder="Filename"
-                value={editor.filename}
-                onChange={e => {
-                  const filename = e.target.value;
-                  onFileNameChange(id, filename);
-                  if (state.typeSelect === TYPE_AUTO)
-                    dispatchTypeChange(state.typeSelect, filename);
-                }}
-              />
-              <span className="icon is-left">
-                <FontAwesomeIcon icon={faFileAlt} />
-              </span>
-            </p>
-          </div>
-          <div className="column">
-            <div className="control is-expanded">
-              <div className="select is-fullwidth">
-                <select
+        <nav className="level">
+          <div className="level-left">
+            <div className="level-item">
+              <p className="control has-icons-left">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Filename"
+                  value={editor.filename}
                   onChange={e => {
-                    const typeSelect = e.target.value;
-                    setState({ typeSelect });
-                    dispatchTypeChange(typeSelect, editor.filename);
+                    const filename = e.target.value;
+                    onFileNameChange(id, filename);
+                    if (state.typeSelect === TYPE_AUTO)
+                      dispatchTypeChange(state.typeSelect, filename);
                   }}
-                  value={state.typeSelect}
-                >
-                  <option value={TYPE_AUTO}>
-                    {"Auto" + (autoMode ? ` (${autoMode.name})` : "")}
-                  </option>
-                  {modes}
-                </select>
+                />
+                <span className="icon is-left">
+                  <FontAwesomeIcon icon={faFileAlt} />
+                </span>
+              </p>
+            </div>
+
+            <div className="level-item">
+              <div className="control is-expanded">
+                <div className="select is-fullwidth">
+                  <select
+                    onChange={e => {
+                      const typeSelect = e.target.value;
+                      setState({ typeSelect });
+                      dispatchTypeChange(typeSelect, editor.filename);
+                    }}
+                    value={state.typeSelect}
+                  >
+                    <option value={TYPE_AUTO}>
+                      {"Auto" + (autoMode ? ` (${autoMode.name})` : "")}
+                    </option>
+                    {modes}
+                  </select>
+                </div>
               </div>
             </div>
+            <div className="level-item">
+              <IndentConfig
+                indent={editor.indent}
+                onModeChange={useCallback(
+                  (mode: "space" | "tab") => onIndentModeChange(id, mode),
+                  [onIndentModeChange, id]
+                )}
+                onSizeChange={useCallback(
+                  (size: number) => onIndentSizeChange(id, size),
+                  [onIndentSizeChange, id]
+                )}
+              />
+            </div>
           </div>
-          <div className="column">
-            <IndentConfig
-              indent={editor.indent}
-              onModeChange={useCallback(
-                (mode: "space" | "tab") => onIndentModeChange(id, mode),
-                [onIndentModeChange, id]
-              )}
-              onSizeChange={useCallback(
-                (size: number) => onIndentSizeChange(id, size),
-                [onIndentSizeChange, id]
-              )}
-            />
+
+          <div className="level-right">
+            <div className="level-item">
+              <button
+                className="delete is-pulled-right"
+                onClick={() => {
+                  if (
+                    !editor.modified ||
+                    window.confirm("Do you really want to remove this file?")
+                  ) {
+                    onRemove(id);
+                  }
+                }}
+              ></button>
+            </div>
           </div>
-          <div className="column">
-            <button
-              className="delete is-pulled-right"
-              onClick={() => {
-                if (
-                  !editor.modified ||
-                  window.confirm("Do you really want to remove this file?")
-                ) {
-                  onRemove(id);
-                }
-              }}
-            ></button>
-          </div>
-        </div>
+        </nav>
       </div>
       <div className="panel-item">
         <Editor

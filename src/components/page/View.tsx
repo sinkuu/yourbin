@@ -36,8 +36,6 @@ const ViewPaste = (props: any) => {
         };
       }
 
-      console.log(files);
-
       setState({ description: filesinfo.description, files });
 
       for (const entry of Object.entries(filesinfo.files)) {
@@ -68,7 +66,9 @@ const ViewPaste = (props: any) => {
   return (
     <div>
       {state.description ? (
-        <div className="container">{state.description}</div>
+        <div className="container" style={{ marginTop: "1em" }}>
+          {state.description}
+        </div>
       ) : (
         []
       )}
