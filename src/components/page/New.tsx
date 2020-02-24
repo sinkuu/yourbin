@@ -6,7 +6,8 @@ import {
   editorAdd,
   editorDiscardAll,
   editorUpdate,
-  editorRemove
+  editorRemove,
+  editorSetDescription
 } from "../../action";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -122,6 +123,7 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
 
   const publish = async () => {
     let editors = Object.entries(props.editors.states);
+    const description = props.editors.description;
     props.dispatch(editorDiscardAll());
     editors.sort(([k1, _v1], [k2, _v2]) => parseInt(k1, 10) - parseInt(k2, 10));
 
@@ -148,19 +150,22 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
 
     const files: any[] = editors.map(([id, e]: [string, EditorState]) => ({
       path: "/" + e.filename,
-      content: e.content,
-      mtime: { secs: new Date().getTime() }
+      content: e.content || [],
+      mtime: { secs: Math.floor(new Date().getTime() / 1000) }
     }));
 
     let filesinfo: FilesInfo = editors.reduce(
       (o, [id, editor]) => ({
         ...o,
-        [id]: {
-          filename: editor.filename,
-          type: editor.type
+        files: {
+          ...o.files,
+          [id]: {
+            filename: editor.filename,
+            type: editor.type
+          }
         }
       }),
-      {}
+      { description, files: {} }
     );
 
     files.push({
@@ -209,16 +214,14 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
           </button>
 
           <div className="is-pulled-right">
-            <div className="columns">
-              <div className="column">
-                <button className="button is-primary" onClick={publish}>
-                  <span className="icon">
-                    <FontAwesomeIcon icon={faUpload} />
-                  </span>
-                  <span>Publish</span>
-                </button>
-              </div>
-              {/* <div className="column">
+            <button className="button is-primary" onClick={publish}>
+              <span className="icon">
+                <FontAwesomeIcon icon={faUpload} />
+              </span>
+              <span>Publish</span>
+            </button>
+          </div>
+          {/* <div className="column">
                 <button className="button">
                   <span className="icon">
                     <FontAwesomeIcon icon={faUpload} />
@@ -226,7 +229,17 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
                   <span>Publish (encrypted)</span>
                 </button>
               </div> */}
-            </div>
+        </div>
+        <div className="is-pulled-right" style={{ marginRight: "1em" }}>
+          <div className="control">
+            <input
+              className="input"
+              type="text"
+              placeholder="Description"
+              size={50}
+              value={props.editors.description}
+              onChange={e => dispatch(editorSetDescription(e.target.value))}
+            />
           </div>
         </div>
       </section>

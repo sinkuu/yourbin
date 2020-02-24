@@ -5,7 +5,7 @@ export enum Actions {
   EditorDiscardAll = "EDITOR_DISCARD_ALL",
   EditorAdd = "EDITOR_ADD",
   EditorRemove = "EDITOR_REMOVE",
-  IpfsSetInstance = "IPFS_SET_INSTANCE"
+  EditorSetDescription = "EDITOR_SET_DESCRIPTION"
 }
 
 export const editorUpdate = (
@@ -29,7 +29,7 @@ export const editorRemove = (id: string) => ({
   payload: id
 });
 
-export const ipfsSetInstance = (ipfs: any) => ({
-  type: Actions.IpfsSetInstance,
-  payload: ipfs
+export const editorSetDescription = (desc: string) => ({
+  type: Actions.EditorSetDescription,
+  payload: desc
 });

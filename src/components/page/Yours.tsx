@@ -48,7 +48,7 @@ export default function Yours(props: any) {
         items.push({
           name: f.name,
           ipfsPath: "/ipfs/" + fcid,
-          files: Object.values(filesinfo).map((v: any) => v.filename)
+          files: Object.values(filesinfo.files).map((v: any) => v.filename)
         });
       }
 

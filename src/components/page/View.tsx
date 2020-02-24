@@ -11,7 +11,10 @@ const ViewPaste = (props: any) => {
 
   const { dispatch } = props;
 
-  const [state, setState] = useState<{ files: any }>({ files: {} });
+  const [state, setState] = useState<{ description: string; files: any }>({
+    description: "",
+    files: {}
+  });
 
   useEffect(() => {
     const getFileInfos = async () => {
@@ -24,10 +27,10 @@ const ViewPaste = (props: any) => {
       const filesinfo: FilesInfo = JSON.parse(json);
 
       let files: any = {};
-      for (const id in filesinfo) {
+      for (const id in filesinfo.files) {
         files[id] = {
-          filename: filesinfo[id].filename,
-          type: filesinfo[id].type,
+          filename: filesinfo.files[id].filename,
+          type: filesinfo.files[id].type,
           loading: true,
           content: ""
         };
@@ -35,14 +38,15 @@ const ViewPaste = (props: any) => {
 
       console.log(files);
 
-      setState({ files });
+      setState({ description: filesinfo.description, files });
 
-      for (const entry of Object.entries(filesinfo)) {
+      for (const entry of Object.entries(filesinfo.files)) {
         const [id, info]: [string, { filename: string; type: string }] = entry;
+        console.log(info);
         const content = await ipfsCat(ipfs, ipfsPath + "/" + info.filename);
         files[id] = { ...files[id], loading: false, content };
         console.log(files);
-        setState({ files });
+        setState((s: any) => ({ ...s, files }));
       }
     };
 
@@ -52,6 +56,7 @@ const ViewPaste = (props: any) => {
   const files = Object.entries(state.files).map(([id, info]: [string, any]) => {
     return (
       <ViewFile
+        key={id}
         filename={info.filename}
         type={info.type}
         loading={info.loading}
@@ -60,7 +65,16 @@ const ViewPaste = (props: any) => {
     );
   });
 
-  return <div>{files}</div>;
+  return (
+    <div>
+      {state.description ? (
+        <div className="container">{state.description}</div>
+      ) : (
+        []
+      )}
+      <div>{files}</div>
+    </div>
+  );
 };
 
 export default connect()(ViewPaste);

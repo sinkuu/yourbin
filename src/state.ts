@@ -1,15 +1,11 @@
 export interface State {
   readonly editors: Editors;
-  readonly ipfs: IpfsState;
-}
-
-export interface IpfsState {
-  ipfs: any;
 }
 
 export interface Editors {
   readonly next_id: number;
   readonly states: { [n: string]: EditorState };
+  readonly description: string;
 }
 
 export interface EditorState {
