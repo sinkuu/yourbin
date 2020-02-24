@@ -22,6 +22,7 @@
     "@types/webpack-env": "^1.15.1",
     "bl": "^4.0.0",
     "bulma": "^0.8.0",
+    "classnames": "^2.2.6",
     "codemirror": "^5.52.0",
     "immer": "^5.3.6",
     "node-sass": "^4.13.1",

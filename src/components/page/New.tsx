@@ -183,7 +183,6 @@ const New = (props: { dispatch: (action: any) => void; editors: Editors }) => {
         wrapWithDirectory: true
       });
 
-      // history.push()
       console.log(result);
 
       const ipfsPath = "/ipfs/" + result.slice(-1)[0].hash;

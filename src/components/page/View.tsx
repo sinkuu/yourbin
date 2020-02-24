@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { getIpfs, FilesInfo, ipfsCat } from "../../ipfs";
 import ViewFile from "../ViewFile";
 import { useParams } from "react-router-dom";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faLink } from "@fortawesome/free-solid-svg-icons";
 
 const ViewPaste = (props: any) => {
   const { path } = useParams();
@@ -65,13 +67,59 @@ const ViewPaste = (props: any) => {
 
   return (
     <div>
-      {state.description ? (
-        <div className="container" style={{ marginTop: "1em" }}>
-          {state.description}
-        </div>
-      ) : (
-        []
-      )}
+      <div className="container">
+        <nav className="level">
+          <div className="level-left">
+            <div className="level-item">{state.description}</div>
+          </div>
+          <div className="level-right">
+            <div className="level-item">
+              <a
+                href={
+                  "//" +
+                  window.location.host +
+                  window.location.pathname +
+                  "#/view" +
+                  ipfsPath
+                }
+              >
+                {ipfsPath}
+              </a>
+            </div>
+          </div>
+          {/* <div className="level-right">
+            <div className="level-item">
+              <button className="button">
+                <span className="icon">
+                  <FontAwesomeIcon icon={faLink} />
+                </span>
+                <span>Share</span>
+              </button>
+            </div>
+          </div> */}
+        </nav>
+      </div>
+
+      <div className="container is-hidden">
+        <article className="message is-link">
+          <div className="message-header">
+            <p>Link</p>
+            <button className="delete" aria-label="delete"></button>
+          </div>
+          <div className="message-body">
+            <div className="control">
+              <input
+                type="text"
+                readOnly
+                value={"https://ipfs.io" + ipfsPath}
+                style={{ width: "100%" }}
+                onClick={e => (e.target as HTMLInputElement).select()}
+              />
+            </div>
+          </div>
+        </article>
+      </div>
+
       <div>{files}</div>
     </div>
   );

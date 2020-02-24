@@ -1,35 +1,60 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { getIpfs, ipfsCat } from "../../ipfs";
+const classNames = require("classnames");
 
 function Item(props: {
   name: string;
   description: string;
   ipfsPath: string;
   files: [string];
+  onRemove: (name: string) => void;
 }) {
-  const { name, description, ipfsPath, files } = props;
+  const { name, description, ipfsPath, files, onRemove } = props;
 
   return (
     <div className="container">
       <div className="card">
         <div className="card-content">
-          <p className="is-size-5">
-            {description}
-            &nbsp;-&nbsp;
-            <time>
-              <NavLink to={"/view" + ipfsPath}>
-                {new Date(parseInt(name, 10)).toLocaleString()}
-              </NavLink>
-            </time>
-          </p>
-          <p>
-            {files.map(e => (
-              <span className="tag" key={e}>
-                {e}
-              </span>
-            ))}
-          </p>
+          <nav className="level">
+            <div className="level-left">
+              <div className="level-item is-size-5">
+                {description}
+                &nbsp;-&nbsp;
+                <time>
+                  <NavLink to={"/view" + ipfsPath}>
+                    {new Date(parseInt(name, 10)).toLocaleString()}
+                  </NavLink>
+                </time>
+              </div>
+            </div>
+            <div className="level-right">
+              <div className="level-item">
+                <button
+                  className="delete is-pulled-right"
+                  onClick={() => {
+                    if (
+                      window.confirm("Do you really want to remove this item?")
+                    ) {
+                      onRemove(name);
+                    }
+                  }}
+                ></button>
+              </div>
+            </div>
+          </nav>
+
+          {files.length === 1 && files[0] === "0" ? (
+            []
+          ) : (
+            <p>
+              {files.map(e => (
+                <span className="tag" key={e}>
+                  {e}
+                </span>
+              ))}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -37,10 +62,16 @@ function Item(props: {
 }
 
 export default function Yours(props: any) {
-  const [state, setState] = useState<{ num_files: number; items: any[] }>({
+  const [state, setState] = useState<{
+    num_files: number;
+    load_done: boolean;
+    items: any[];
+  }>({
     num_files: 0,
+    load_done: false,
     items: []
   });
+  console.log(state);
 
   const PerPage = 10;
   let { page } = useParams();
@@ -50,6 +81,11 @@ export default function Yours(props: any) {
 
   useEffect(() => {
     const getList = async () => {
+      setState(s => ({
+        ...s,
+        load_done: false
+      }));
+
       const ipfs = await getIpfs();
       let files: any[] = await ipfs.files.ls("/yours", { sort: true });
       files.reverse();
@@ -77,10 +113,22 @@ export default function Yours(props: any) {
         });
       }
       console.log(items);
-      setState({ num_files, items });
+      setState({ num_files, load_done: true, items });
     };
-    getList();
+    getList().catch((error: any) => {
+      console.log(error);
+      setState(s => ({ ...s, load_done: true }));
+    });
   }, [pagei]);
+
+  const onRemove = useCallback(name => {
+    const remove = async () => {
+      const ipfs = await getIpfs();
+      await ipfs.files.rm("/yours/" + name, { recursive: true });
+      window.location.reload();
+    };
+    remove();
+  }, []);
 
   let pageLinks = [];
 
@@ -99,14 +147,32 @@ export default function Yours(props: any) {
 
   return (
     <div>
+      <div className="container">
+        <progress
+          className={classNames("progress", "is-small", "is-info", {
+            "is-hidden": state.load_done
+          })}
+        >
+          Loading
+        </progress>
+      </div>
+
+      <div
+        className={classNames("container", {
+          "is-hidden": !state.load_done || state.num_files !== 0
+        })}
+      >
+        <div className="notification">No pastes found.</div>
+      </div>
       <section className="section">
         {state.items.map(item => (
           <Item
-            key={item.ipfsPath + item.name}
             name={item.name}
             description={item.description}
             ipfsPath={item.ipfsPath}
             files={item.files}
+            key={item.ipfsPath + item.name}
+            onRemove={onRemove}
           />
         ))}
       </section>
