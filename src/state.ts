@@ -1,6 +1,6 @@
 export interface State {
   readonly editors: Editors;
-  readonly error_message: string | null;
+  readonly errorMessage: string | null;
 }
 
 export interface Editors {

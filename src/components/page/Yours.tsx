@@ -121,7 +121,10 @@ function Yours(props: { dispatch: (action: any) => void }) {
     };
     getList().catch((error: any) => {
       console.log(error);
-      dispatch(setErrorMessage(error.toString()));
+      let errorStr = error.toString();
+      if (errorStr !== "Error: file does not exist") {
+        dispatch(setErrorMessage(error.toString()));
+      }
       setState(s => ({ ...s, load_done: true }));
     });
   }, [pagei, dispatch]);

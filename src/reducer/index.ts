@@ -17,7 +17,7 @@ export const initialState: State = {
     },
     description: ""
   },
-  error_message: null
+  errorMessage: null
 };
 
 export default combineReducers({

@@ -194,7 +194,7 @@ const mapStateToProps = (state: State) => {
     modified: Object.values(state.editors.states).some(
       (e: EditorState) => e.modified
     ),
-    error_message: state.error_message
+    error_message: state.errorMessage
   };
 };
 
